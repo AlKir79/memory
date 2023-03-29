@@ -5,6 +5,8 @@
 #include <conio.h>
 #include <windows.h>
 #include <cstdlib>
+#include <string>
+
 using namespace std;
 
 int menu()
@@ -61,7 +63,24 @@ void printArr(int** arr, int& size)
 		{
 			cout << arr[i][j] << "  ";
 		}
-		cout << endl<< endl;
+		cout << endl << endl;
+	}
+}
+void printArrC(string** arr, int& size, int& x, int& y, HANDLE console)
+{
+	for (size_t i = 0; i < size; i++)
+	{
+		for (size_t j = 0; j < size; j++)
+		{
+			if (x == j && y == i) {
+				SetConsoleTextAttribute(console, FOREGROUND_RED);
+				cout << arr[i][j] << "  ";
+				SetConsoleTextAttribute(console, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
+				continue;
+			}
+			cout << arr[i][j] << "  ";
+		}
+		cout << endl << endl;
 	}
 }
 
@@ -69,6 +88,7 @@ void fillArr1(int**arr, int&size)
 {
 	int x,y,val;
 	int count = 0;
+	int count1 = 0;
 // временный массив для координат
 	int** temp = new int* [2];
 	for (size_t i = 0; i < 2; i++)
@@ -87,6 +107,8 @@ void fillArr1(int**arr, int&size)
 			val = 10 + rand() % 70;
 			flag = checkVal(temp1, size, val);
 		}
+		temp1[count1] = val;
+		count1++;
 // вычисляем 2 пары координат значения и проверяем, что таких координат еще не было
 		for (size_t j = 0; j < 2; j++)
 		{
@@ -105,36 +127,82 @@ void fillArr1(int**arr, int&size)
 		}
 	}
 	delete[]temp;
+	delete[]temp1;
 }
 
-void fillArr2(int** arr, int& size)
+void fillArr2(string** arr, int& size)
 {
 	for (size_t i = 0; i < size; i++)
 	{
 		for (size_t j = 0; j < size; j++)
 		{
-			arr[i][j] = 0;
+			arr[i][j] = "**";
 		}
 	}
 }
+void print(string** arr, int& size, int& Score1, int& Score2, string& p, char& key, int&x, int&y, HANDLE console)
+{
+	system("cls");
+	cout << "ОЧКИ ИГРОК 1 - " << Score1 << "      ОЧКИ ИГРОК 2 - " << Score2;
+	cout << endl << endl;
+	cout << "Играет " << p << endl;
+	cout << "Двигая курсор (WASD) выберите первую цифру и нажмите E" << endl << endl;
+	printArrC(arr, size, x, y, console);
+}
 
-int game1(int** arr1, int** arr2, int& size, int& Score1, int& Score2, string& p)
+int game(int** arr1, string** arr2, int& size, string& p, int& count, HANDLE console)
 {
 	char key;
 	int x = 0, y = 0;
-	arr2[x][y] = 1;
-	printArr(arr2, size);
-	cout << "ОЧКИ ИГРОК 1" << Score1 << "      ОЧКИ ИГРОК 2 " << Score2;
-	cout << endl << endl;
-	cout << "Играет " << p << endl;
-	cout << "Двигая курсор (WASD) выберите первую цифру и нажмите E" << endl;
-	key = _getch();
-	if ((key=='w'||key=='W')&&(y!=0)) {}
+	int x1 = 0, y1 = 0;
+	int flag = 0;
+	int Score1 = 0, Score2 = 0;
+	while(count < size * size / 2)
+	{
+		print(arr2, size, Score1, Score2, p, key,x,y, console);
+		key = _getch();
+		// управление курсором
+		if ((key == 'w' || key == 'W') && (y != 0))	y--;
+		if ((key == 's' || key == 'S') && (y < size-1))	y++;
+		if ((key == 'a' || key == 'A') && (x != 0))	x--;
+		if ((key == 'd' || key == 'D') && (x < size-1))	x++;
+		if ((key == 'e' || key == 'E') && arr2[y][x] == "**")
+		{
+			// если нажата клавиша е и это первое значение, то запоминаем значения координат положения курсора
+			if (flag == 0) {
+				x1 = x;
+				y1 = y;
+				arr2[y][x] = to_string(arr1[y][x]);
+				flag = 1;
+				continue;
+			}
+			// иначе начинаем сравнивать
+			if (flag==1) {
+				flag = 0;
+				arr2[y][x] = to_string(arr1[y][x]);
+				if (arr1[y][x] == arr1[y1][x1])
+				{
+					if (p == "ИГРОК 1") Score1++;
+					if (p == "ИГРОК 2") Score2++;
+					count++;
+				}
+				else {
+					print(arr2, size, Score1, Score2, p, key, x,y, console);
+					Sleep(3000);
+					arr2[y1][x1] = "**";
+					arr2[y][x] = "**";
+					print(arr2, size, Score1, Score2, p,key,x,y, console);
+				}
+			}
+		}
+	}
+	if (p == "ИГРОК 1") return Score1;
+	if (p == "ИГРОК 2") return Score2;
 
 }
-
-void game(int** arr1, int** arr2, int& size)
+void memArr(int** arr1, int& size)
 {
+	system("cls");
 	cout << "ВНИМАНИЕ!!!" << endl;
 	cout << "Приготовьтесь запомнить массив цифр" << endl;
 	cout << "Массив будет показан на 10 секунд" << endl;
@@ -143,48 +211,38 @@ void game(int** arr1, int** arr2, int& size)
 	system("cls");
 	printArr(arr1, size);
 	Sleep(10000);
-	int Game = 1;
-	int Score1 = 0;
-	int Score2 = 0;
-	while (Game)
-	{
-		string p1 = "ИГРОК 1";
-		string p2 = "ИГРОК 2";
-		Score1 = game1(arr1, arr2, size,Score1, Score2, p1)
-
-	}
 
 }
 int main()
 {
+	int count = 0;
+	int Sc1 = 0;
+	int Sc2 = 0;
+	string p1 = "ИГРОК 1";
+	string p2 = "ИГРОК 2";
 	setlocale(LC_ALL, "");
 	srand(time(NULL));
+	HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE); 
 	int size = menu();
 	int** arr1 = new int* [size];
 	for (size_t i = 0; i < size; i++)
 	{
 		arr1[i] = new int[size];
 	}
-	int** arr2 = new int* [size];
+	string** arr2 = new string* [size];
 	for (size_t i = 0; i < size; i++)
 	{
-		arr2[i] = new int[size];
+		arr2[i] = new string[size];
 	}
 	fillArr1(arr1, size);
 	fillArr2(arr2, size);
-	game(arr1, arr2, size);
-	printArr(arr2, size);
-
-
+    memArr(arr1, size);
+	while (count < size * size / 2)
+	{
+		Sc1 = game(arr1, arr2, size, p1, count, console);
+		Sc2 = game(arr1, arr2, size, p2, count, console);
+	}
+	system("cls");
+	if (Sc1 > Sc2) cout << "ВЫИГРАЛ ИГРОК 1" << endl <<"ЕГО РЕЗУЛЬТАТ " << Sc1;
+	else cout << "ВЫИГРАЛ ИГРОК 2" << endl << "ЕГО РЕЗУЛЬТАТ " << Sc2;
 }
-
-// Запуск программы: CTRL+F5 или меню "Отладка" > "Запуск без отладки"
-// Отладка программы: F5 или меню "Отладка" > "Запустить отладку"
-
-// Советы по началу работы 
-//   1. В окне обозревателя решений можно добавлять файлы и управлять ими.
-//   2. В окне Team Explorer можно подключиться к системе управления версиями.
-//   3. В окне "Выходные данные" можно просматривать выходные данные сборки и другие сообщения.
-//   4. В окне "Список ошибок" можно просматривать ошибки.
-//   5. Последовательно выберите пункты меню "Проект" > "Добавить новый элемент", чтобы создать файлы кода, или "Проект" > "Добавить существующий элемент", чтобы добавить в проект существующие файлы кода.
-//   6. Чтобы снова открыть этот проект позже, выберите пункты меню "Файл" > "Открыть" > "Проект" и выберите SLN-файл.
