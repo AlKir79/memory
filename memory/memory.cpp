@@ -61,7 +61,19 @@ void printArr(int** arr, int& size)
 		{
 			cout << arr[i][j] << "  ";
 		}
-		cout << endl<< endl;
+		cout << endl << endl;
+	}
+}
+void printArr1(int** arr, int& size, int& x, int& y)
+{
+	for (size_t i = 0; i < size; i++)
+	{
+		for (size_t j = 0; j < size; j++)
+		{
+			if (x == j && y == i) { cout << "1  "; continue; }
+			cout << arr[i][j] << "  ";
+		}
+		cout << endl << endl;
 	}
 }
 
@@ -69,6 +81,7 @@ void fillArr1(int**arr, int&size)
 {
 	int x,y,val;
 	int count = 0;
+	int count1 = 0;
 // временный массив для координат
 	int** temp = new int* [2];
 	for (size_t i = 0; i < 2; i++)
@@ -87,6 +100,8 @@ void fillArr1(int**arr, int&size)
 			val = 10 + rand() % 70;
 			flag = checkVal(temp1, size, val);
 		}
+		temp1[count1] = val;
+		count1++;
 // вычисляем 2 пары координат значения и проверяем, что таких координат еще не было
 		for (size_t j = 0; j < 2; j++)
 		{
@@ -105,6 +120,7 @@ void fillArr1(int**arr, int&size)
 		}
 	}
 	delete[]temp;
+	delete[]temp1;
 }
 
 void fillArr2(int** arr, int& size)
@@ -117,20 +133,63 @@ void fillArr2(int** arr, int& size)
 		}
 	}
 }
+void print(int** arr, int& size, int& Score1, int& Score2, string& p, char& key, int&x, int&y)
+{
+	system("cls");
+	cout << "ОЧКИ ИГРОК 1 - " << Score1 << "      ОЧКИ ИГРОК 2 - " << Score2;
+	cout << endl << endl;
+	cout << "Играет " << p << endl;
+	cout << "Двигая курсор (WASD) выберите первую цифру и нажмите E" << endl << endl;
+	printArr1(arr, size,x,y);
+}
 
-int game1(int** arr1, int** arr2, int& size, int& Score1, int& Score2, string& p)
+int game1(int** arr1, int** arr2, int& size, int& Score1, int& Score2, string& p, int& count)
 {
 	char key;
 	int x = 0, y = 0;
-	arr2[x][y] = 1;
-	printArr(arr2, size);
-	cout << "ОЧКИ ИГРОК 1" << Score1 << "      ОЧКИ ИГРОК 2 " << Score2;
-	cout << endl << endl;
-	cout << "Играет " << p << endl;
-	cout << "Двигая курсор (WASD) выберите первую цифру и нажмите E" << endl;
-	key = _getch();
-	if ((key=='w'||key=='W')&&(y!=0)) {}
-
+	int x1 = 0, y1 = 0;
+	int flag = 0, temp=0;
+	arr2[y][x] = 1;
+	while(1!=0)
+	{
+		print(arr2, size, Score1, Score2, p, key,x,y);
+		key = _getch();
+		// управление курсором
+		if ((key == 'w' || key == 'W') && (y != 0))	y--;
+		if ((key == 's' || key == 'S') && (y < size-1))	y++;
+		if ((key == 'a' || key == 'A') && (x != 0))	x--;
+		if ((key == 'd' || key == 'D') && (x < size-1))	x++;
+		if (key == 'e' || key == 'E') /* && arr2[y][x] == 0)*/ {
+			// если нажата клавиша е и это первое значение, то запоминаем значения координат положения курсора
+			if (flag == 0) {
+				x1 = x;
+				y1 = y;
+				arr2[y][x] = arr1[y][x];
+				flag = 1;
+				continue;
+			}
+			// иначе начинаем сравнивать
+			if (flag==1) {
+				flag = 0; temp = 0;
+				arr2[y][x] = arr1[y][x];
+				if (arr1[y][x] == arr1[y1][x1])
+				{
+					if (p == "ИГРОК 1") Score1++;
+					if (p == "ИГРОК 2") Score2++;
+					count++;
+				}
+				else {
+					print(arr2, size, Score1, Score2, p, key, x,y);
+					Sleep(3000);
+					arr2[y1][x1] = 0;
+					arr2[y][x] = 0;
+					print(arr2, size, Score1, Score2, p,key,x,y);
+					if (p == "ИГРОК 1") return Score1;
+					if (p == "ИГРОК 2") return Score2;
+				}
+			}
+		}
+	}
 }
 
 void game(int** arr1, int** arr2, int& size)
@@ -143,15 +202,15 @@ void game(int** arr1, int** arr2, int& size)
 	system("cls");
 	printArr(arr1, size);
 	Sleep(10000);
-	int Game = 1;
+	int count = 0;
 	int Score1 = 0;
 	int Score2 = 0;
-	while (Game)
+	string p1 = "ИГРОК 1";
+	string p2 = "ИГРОК 2";
+	while (count<size*size/2)
 	{
-		string p1 = "ИГРОК 1";
-		string p2 = "ИГРОК 2";
-		Score1 = game1(arr1, arr2, size,Score1, Score2, p1)
-
+		Score1 = game1(arr1, arr2, size, Score1, Score2, p1,count);
+		Score2 = game1(arr1, arr2, size, Score1, Score2, p2,count);
 	}
 
 }
