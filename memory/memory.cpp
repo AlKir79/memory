@@ -26,7 +26,7 @@ int menu()
 		} while (size>10 || size<0 || (size%2)!=0);
 		system("cls");
 	};
-	if (key == '2') exit;
+	if (key == '2') exit(1);
 	return size;
 }
 
@@ -150,17 +150,62 @@ void print(string** arr, int& size, int& Score1, int& Score2, string& p, char& k
 	printArrC(arr, size, x, y, console);
 }
 
-int game(int** arr1, string** arr2, int& size, string& p, int& count, HANDLE console)
+void memArr(int** arr1, int& size)
+{
+	system("cls");
+	cout << "ВНИМАНИЕ!!!" << endl;
+	cout << "Приготовьтесь запомнить массив цифр" << endl;
+	cout << "Массив будет показан на 10 секунд" << endl;
+	cout << "Для продолжения нажмите любую клавишу";
+	_getch();
+	system("cls");
+	printArr(arr1, size);
+	Sleep(10000);
+}
+
+void victory()
+{
+	Beep(247, 500);
+	Beep(417, 500);
+	Beep(417, 500);
+	Beep(370, 500);
+	Beep(417, 500);
+	Beep(329, 500);
+	Beep(247, 500);
+	Beep(247, 500);
+	Beep(247, 500);
+	Beep(417, 500);
+	Beep(417, 500);
+	Beep(370, 500);
+	Beep(417, 500);
+	Beep(497, 500);
+	Sleep(500);
+	Beep(497, 500);
+	Beep(277, 500);
+	Beep(277, 500);
+	Beep(440, 500);
+	Beep(440, 500);
+	Beep(417, 500);
+	Beep(370, 500);
+	Beep(329, 500);
+	Beep(247, 500);
+	Beep(417, 500);
+	Beep(417, 500);
+	Beep(370, 500);
+	Beep(417, 500);
+	Beep(329, 500);
+}
+
+int game(int** arr1, string** arr2, int& size, int& Score1, int& Score2, string& p, int& count, HANDLE console)
 {
 	char key;
 	int x = 0, y = 0;
 	int x1 = 0, y1 = 0;
 	int flag = 0;
-	int Score1 = 0, Score2 = 0;
 	while(count < size * size / 2)
 	{
 		print(arr2, size, Score1, Score2, p, key,x,y, console);
-		key = _getch();
+		key = _getch(); Beep(1568, 200);
 		// управление курсором
 		if ((key == 'w' || key == 'W') && (y != 0))	y--;
 		if ((key == 's' || key == 'S') && (y < size-1))	y++;
@@ -170,6 +215,7 @@ int game(int** arr1, string** arr2, int& size, string& p, int& count, HANDLE con
 		{
 			// если нажата клавиша е и это первое значение, то запоминаем значения координат положения курсора
 			if (flag == 0) {
+				Beep(800, 200);
 				x1 = x;
 				y1 = y;
 				arr2[y][x] = to_string(arr1[y][x]);
@@ -182,8 +228,9 @@ int game(int** arr1, string** arr2, int& size, string& p, int& count, HANDLE con
 				arr2[y][x] = to_string(arr1[y][x]);
 				if (arr1[y][x] == arr1[y1][x1])
 				{
-					if (p == "ИГРОК 1") Score1++;
-					if (p == "ИГРОК 2") Score2++;
+					if (p == "ИГРОК 1") Score1+=10;
+					if (p == "ИГРОК 2") Score2+=10;
+					Beep(1800, 200);
 					count++;
 				}
 				else {
@@ -192,6 +239,7 @@ int game(int** arr1, string** arr2, int& size, string& p, int& count, HANDLE con
 					arr2[y1][x1] = "**";
 					arr2[y][x] = "**";
 					print(arr2, size, Score1, Score2, p,key,x,y, console);
+					break;
 				}
 			}
 		}
@@ -200,49 +248,43 @@ int game(int** arr1, string** arr2, int& size, string& p, int& count, HANDLE con
 	if (p == "ИГРОК 2") return Score2;
 
 }
-void memArr(int** arr1, int& size)
-{
-	system("cls");
-	cout << "ВНИМАНИЕ!!!" << endl;
-	cout << "Приготовьтесь запомнить массив цифр" << endl;
-	cout << "Массив будет показан на 10 секунд" << endl;
-	cout << "Для продолжения нажмите любую клавишу";
-	_getch();
-	system("cls");
-	printArr(arr1, size);
-	Sleep(10000);
 
-}
 int main()
 {
 	int count = 0;
-	int Sc1 = 0;
-	int Sc2 = 0;
+	int Score1 = 0;
+	int Score2 = 0;
 	string p1 = "ИГРОК 1";
 	string p2 = "ИГРОК 2";
 	setlocale(LC_ALL, "");
 	srand(time(NULL));
 	HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE); 
-	int size = menu();
-	int** arr1 = new int* [size];
-	for (size_t i = 0; i < size; i++)
+	while (true) 
 	{
-		arr1[i] = new int[size];
+		int size = menu();
+		int** arr1 = new int* [size];
+		for (size_t i = 0; i < size; i++)
+		{
+			arr1[i] = new int[size];
+		}
+		string** arr2 = new string* [size];
+		for (size_t i = 0; i < size; i++)
+		{
+			arr2[i] = new string[size];
+		}
+		fillArr1(arr1, size);
+		fillArr2(arr2, size);
+		memArr(arr1, size);
+		while (count < size * size / 2)
+		{
+			Score1 = game(arr1, arr2, size, Score1, Score2, p1, count, console);
+			Score2 = game(arr1, arr2, size, Score1, Score2, p2, count, console);
+		}
+		system("cls");
+		if (Score1 > Score2) cout << "ВЫИГРАЛ ИГРОК 1" << endl <<"ЕГО РЕЗУЛЬТАТ " << Score1;
+		else cout << "ВЫИГРАЛ ИГРОК 2" << endl << "ЕГО РЕЗУЛЬТАТ " << Score2;
+		victory();
+		cout << endl<< "Для продолжения нажмите любую клавишу.";
+		_getch();
 	}
-	string** arr2 = new string* [size];
-	for (size_t i = 0; i < size; i++)
-	{
-		arr2[i] = new string[size];
-	}
-	fillArr1(arr1, size);
-	fillArr2(arr2, size);
-    memArr(arr1, size);
-	while (count < size * size / 2)
-	{
-		Sc1 = game(arr1, arr2, size, p1, count, console);
-		Sc2 = game(arr1, arr2, size, p2, count, console);
-	}
-	system("cls");
-	if (Sc1 > Sc2) cout << "ВЫИГРАЛ ИГРОК 1" << endl <<"ЕГО РЕЗУЛЬТАТ " << Sc1;
-	else cout << "ВЫИГРАЛ ИГРОК 2" << endl << "ЕГО РЕЗУЛЬТАТ " << Sc2;
 }
